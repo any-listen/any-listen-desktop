@@ -117,8 +117,7 @@ jobs:
         run: |
           cd any-listen/build
           $hashes = Get-FileHash *.exe,*.7z -Algorithm SHA256 | ForEach-Object {
-            $name = ($_.Path | Split-Path -Leaf) -replace 'Any Listen','Any-Listen'
-            "$($_.Hash)  $name"
+            "$($_.Hash)  $($_.Path | Split-Path -Leaf)"
           }
           $hashes | Out-String
           echo "shasum<<EOF" >> $env:GITHUB_OUTPUT
@@ -178,8 +177,7 @@ jobs:
         run: |
           cd any-listen/build
           $hashes = Get-FileHash *.exe,*.7z -Algorithm SHA256 | ForEach-Object {
-            $name = ($_.Path | Split-Path -Leaf) -replace 'Any Listen','Any-Listen'
-            "$($_.Hash)  $name"
+            "$($_.Hash)  $($_.Path | Split-Path -Leaf)"
           }
           $hashes | Out-String
           echo "shasum<<EOF" >> $env:GITHUB_OUTPUT
@@ -235,7 +233,7 @@ jobs:
         id: mac_shasum
         run: |
           cd any-listen/build
-          hashes=$(shasum -a 256 *.dmg | sed 's/Any Listen/Any-Listen/g')
+          hashes=$(shasum -a 256 *.dmg)
           echo "$hashes"
           echo "shasum<<EOF" >> $GITHUB_OUTPUT
           echo "$hashes" >> $GITHUB_OUTPUT
@@ -294,7 +292,7 @@ jobs:
         id: linux_shasum
         run: |
           cd any-listen/build
-          hashes=$(sha256sum *.deb *.rpm *.pacman *.AppImage 2>/dev/null | sed 's/Any Listen/Any-Listen/g' || true)
+          hashes=$(sha256sum *.deb *.rpm *.pacman *.AppImage)
           echo "$hashes"
           echo "shasum<<EOF" >> $GITHUB_OUTPUT
           echo "$hashes" >> $GITHUB_OUTPUT
