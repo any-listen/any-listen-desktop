@@ -115,7 +115,7 @@ jobs:
       - name: Generate file SHA256
         id: win_shasum
         run: |
-          cd build
+          cd any-listen/build
           $hashes = Get-FileHash *.exe,*.7z -Algorithm SHA256 | ForEach-Object {
             "$($_.Hash)  $($_.Path | Split-Path -Leaf)"
           }
@@ -173,7 +173,7 @@ jobs:
       - name: Generate file SHA256
         id: win7_shasum
         run: |
-          cd build
+          cd any-listen/build
           $hashes = Get-FileHash *.exe,*.7z -Algorithm SHA256 | ForEach-Object {
             "$($_.Hash)  $($_.Path | Split-Path -Leaf)"
           }
@@ -230,7 +230,7 @@ jobs:
       - name: Generate file SHA256
         id: mac_shasum
         run: |
-          cd build
+          cd any-listen/build
           hashes=$(shasum -a 256 *.dmg)
           echo "$hashes"
           echo "shasum<<EOF" >> $GITHUB_OUTPUT
@@ -289,7 +289,7 @@ jobs:
       - name: Generate file SHA256
         id: linux_shasum
         run: |
-          cd build
+          cd any-listen/build
           hashes=$(sha256sum *.deb *.rpm *.pacman *.AppImage)
           echo "$hashes"
           echo "shasum<<EOF" >> $GITHUB_OUTPUT
