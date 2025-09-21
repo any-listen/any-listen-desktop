@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - 'any-listen/**'
+      - any-listen
 
 permissions:
   contents: write
