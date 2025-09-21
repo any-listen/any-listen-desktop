@@ -120,6 +120,7 @@ jobs:
             $name = ($_.Path | Split-Path -Leaf) -replace 'Any Listen','Any-Listen'
             "$($_.Hash)  $name"
           }
+          $hashes | Out-String
           echo "shasum<<EOF" >> $env:GITHUB_OUTPUT
           echo "$hashes" >> $env:GITHUB_OUTPUT
           echo "EOF" >> $env:GITHUB_OUTPUT
@@ -180,6 +181,7 @@ jobs:
             $name = ($_.Path | Split-Path -Leaf) -replace 'Any Listen','Any-Listen'
             "$($_.Hash)  $name"
           }
+          $hashes | Out-String
           echo "shasum<<EOF" >> $env:GITHUB_OUTPUT
           echo "$hashes" >> $env:GITHUB_OUTPUT
           echo "EOF" >> $env:GITHUB_OUTPUT
