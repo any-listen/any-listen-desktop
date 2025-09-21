@@ -121,7 +121,7 @@ jobs:
           }
           $hashes | Out-String
           echo "shasum<<EOF" >> $env:GITHUB_OUTPUT
-          echo "$hashes" >> $env:GITHUB_OUTPUT
+          $hashes | ForEach-Object { echo "$_" >> $env:GITHUB_OUTPUT }
           echo "EOF" >> $env:GITHUB_OUTPUT
 
   BuildWindows_7:
@@ -181,7 +181,7 @@ jobs:
           }
           $hashes | Out-String
           echo "shasum<<EOF" >> $env:GITHUB_OUTPUT
-          echo "$hashes" >> $env:GITHUB_OUTPUT
+          $hashes | ForEach-Object { echo "$_" >> $env:GITHUB_OUTPUT }
           echo "EOF" >> $env:GITHUB_OUTPUT
 
   BuildMac:
