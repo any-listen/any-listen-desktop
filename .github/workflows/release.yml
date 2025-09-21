@@ -117,9 +117,9 @@ jobs:
         run: |
           cd any-listen/build
           $hashes = Get-FileHash *.exe,*.7z -Algorithm SHA256 | ForEach-Object {
-            "$($_.Hash)  $($_.Path | Split-Path -Leaf)"
+            $name = ($_.Path | Split-Path -Leaf) -replace 'Any Listen','Any-Listen'
+            "$($_.Hash)  $name"
           }
-          $hashes | Out-String
           echo "shasum<<EOF" >> $env:GITHUB_OUTPUT
           echo "$hashes" >> $env:GITHUB_OUTPUT
           echo "EOF" >> $env:GITHUB_OUTPUT
@@ -169,15 +169,17 @@ jobs:
           pnpm -F scripts publish:win7:setup:x64
           pnpm -F scripts publish:win7:7z:x64
           pnpm -F scripts publish:win7:7z:x86
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate file SHA256
         id: win7_shasum
         run: |
           cd any-listen/build
           $hashes = Get-FileHash *.exe,*.7z -Algorithm SHA256 | ForEach-Object {
-            "$($_.Hash)  $($_.Path | Split-Path -Leaf)"
+            $name = ($_.Path | Split-Path -Leaf) -replace 'Any Listen','Any-Listen'
+            "$($_.Hash)  $name"
           }
-          $hashes | Out-String
           echo "shasum<<EOF" >> $env:GITHUB_OUTPUT
           echo "$hashes" >> $env:GITHUB_OUTPUT
           echo "EOF" >> $env:GITHUB_OUTPUT
@@ -231,7 +233,7 @@ jobs:
         id: mac_shasum
         run: |
           cd any-listen/build
-          hashes=$(shasum -a 256 *.dmg)
+          hashes=$(shasum -a 256 *.dmg | sed 's/Any Listen/Any-Listen/g')
           echo "$hashes"
           echo "shasum<<EOF" >> $GITHUB_OUTPUT
           echo "$hashes" >> $GITHUB_OUTPUT
@@ -290,7 +292,7 @@ jobs:
         id: linux_shasum
         run: |
           cd any-listen/build
-          hashes=$(sha256sum *.deb *.rpm *.pacman *.AppImage)
+          hashes=$(sha256sum *.deb *.rpm *.pacman *.AppImage 2>/dev/null | sed 's/Any Listen/Any-Listen/g' || true)
           echo "$hashes"
           echo "shasum<<EOF" >> $GITHUB_OUTPUT
           echo "$hashes" >> $GITHUB_OUTPUT
