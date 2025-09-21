@@ -292,7 +292,7 @@ jobs:
         id: linux_shasum
         run: |
           cd any-listen/build
-          hashes=$(sha256sum *.deb *.rpm *.pacman *.AppImage)
+          hashes=$(sha256sum *.deb *.pacman *.AppImage)
           echo "$hashes"
           echo "shasum<<EOF" >> $GITHUB_OUTPUT
           echo "$hashes" >> $GITHUB_OUTPUT
