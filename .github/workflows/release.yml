@@ -283,7 +283,7 @@ jobs:
           pnpm -F scripts publish:linux:deb:arm64
           pnpm -F scripts publish:linux:deb:armv7l
           pnpm -F scripts publish:linux:appImage
-          pnpm -F scripts publish:linux:rpm
+          # pnpm -F scripts publish:linux:rpm
           pnpm -F scripts publish:linux:pacman
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
