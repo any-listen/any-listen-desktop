@@ -1,0 +1,353 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'any-listen/**'
+
+permissions:
+  contents: write
+
+env:
+  IS_CI: true
+
+jobs:
+  CheckTag:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.check_tag.outputs.tag }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: 'true'
+        fetch-tags: true
+
+    - name: Check if submodule latest commit has a tag
+      id: check_tag
+      run: |
+        cd any-listen
+        latest_commit=$(git log -1 --format=%H)
+        tag=$(git tag --contains $latest_commit)
+
+        if [ -z "$tag" ]; then
+          echo "No tag found for the latest commit in the submodule."
+          echo "tag=" >> $GITHUB_OUTPUT
+        else
+          echo "Tag found for the latest commit: $tag"
+          if [[ "$tag" == desktop-* ]]; then
+            echo "Tag found for the latest commit: $tag, commit: $latest_commit"
+            tag_formated=$(echo "$tag" | sed 's/^desktop-v\?//')
+            echo "tag=$tag_formated" >> $GITHUB_OUTPUT
+          else
+            echo "Tag does not start with 'desktop-v', skipping build."
+            echo "tag=" >> $GITHUB_OUTPUT
+          fi
+        fi
+  CreateTag:
+    needs: CheckTag
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.create_tag.outputs.tag }}
+    if: needs.CheckTag.outputs.tag != ''
+    steps:
+      - name: Create git tag
+        uses: pkgdeps/git-tag-action@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_repo: ${{ github.repository }}
+          version: ${{ needs.CheckTag.outputs.tag }}
+          git_commit_sha: ${{ github.sha }}
+          git_tag_prefix: "v"
+
+      - name: Output tag
+        id: create_tag
+        run: |
+          echo "tag=${{ needs.CheckTag.outputs.tag }}" >> $GITHUB_OUTPUT
+
+  BuildWindows:
+    needs: CreateTag
+    name: Build Windows
+    runs-on: windows-latest
+    outputs:
+      shasum: ${{ steps.win_shasum.outputs.shasum }}
+    if: needs.CreateTag.outputs.tag != ''
+    steps:
+      - name: Check out git repository
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
+        run: |
+          cd any-listen
+          pnpm install
+
+      - name: Build src code
+        run: |
+          cd any-listen
+          pnpm -F scripts build:desktop
+
+      - name: Build packages
+        run: |
+          cd any-listen
+          pnpm -F scripts publish:win:7z:x64
+          pnpm -F scripts publish:win:7z:arm64
+          pnpm -F scripts publish:win:setup:arm64
+          pnpm -F scripts publish:win:setup:x64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate file SHA256
+        id: win_shasum
+        run: |
+          cd build
+          $hashes = Get-FileHash *.exe,*.7z -Algorithm SHA256 | ForEach-Object {
+            "$($_.Hash)  $($_.Path | Split-Path -Leaf)"
+          }
+          $hashes | Out-String
+          echo "shasum<<EOF" >> $env:GITHUB_OUTPUT
+          echo "$hashes" >> $env:GITHUB_OUTPUT
+          echo "EOF" >> $env:GITHUB_OUTPUT
+
+  BuildWindows_7:
+    needs: CreateTag
+    name: Build Windows_7
+    runs-on: windows-latest
+    outputs:
+      shasum: ${{ steps.win7_shasum.outputs.shasum }}
+    if: needs.CreateTag.outputs.tag != ''
+    steps:
+      - name: Check out git repository
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
+        run: |
+          cd any-listen
+          pnpm install
+
+      - name: Build src code
+        run: |
+          cd any-listen
+          pnpm -F scripts build:desktop
+
+      - name: Prepare win7 electron env
+        run: |
+          pnpm -F desktop add electron@22
+          pip.exe install setuptools
+
+      - name: Release win7 package
+        run: |
+          cd any-listen
+          pnpm -F scripts publish:win7:setup:x64
+          pnpm -F scripts publish:win7:7z:x64
+          pnpm -F scripts publish:win7:7z:x86
+
+      - name: Generate file SHA256
+        id: win7_shasum
+        run: |
+          cd build
+          $hashes = Get-FileHash *.exe,*.7z -Algorithm SHA256 | ForEach-Object {
+            "$($_.Hash)  $($_.Path | Split-Path -Leaf)"
+          }
+          $hashes | Out-String
+          echo "shasum<<EOF" >> $env:GITHUB_OUTPUT
+          echo "$hashes" >> $env:GITHUB_OUTPUT
+          echo "EOF" >> $env:GITHUB_OUTPUT
+
+  BuildMac:
+    needs: CreateTag
+    name: Build Mac
+    runs-on: macos-latest
+    outputs:
+      shasum: ${{ steps.mac_shasum.outputs.shasum }}
+    if: needs.CreateTag.outputs.tag != ''
+    steps:
+      - name: Install python3 setuptools
+        run: brew install python-setuptools
+
+      - name: Check out git repository
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
+        run: |
+          cd any-listen
+          pnpm install
+
+      - name: Build src code
+        run: |
+          cd any-listen
+          pnpm -F scripts build:desktop
+
+      - name: Build packages
+        run: |
+          cd any-listen
+          pnpm -F scripts publish:mac:dmg
+          pnpm -F scripts publish:mac:dmg:arm64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate file SHA256
+        id: mac_shasum
+        run: |
+          cd build
+          hashes=$(shasum -a 256 *.dmg)
+          echo "$hashes"
+          echo "shasum<<EOF" >> $GITHUB_OUTPUT
+          echo "$hashes" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+  BuildLinux:
+    needs: CreateTag
+    name: Build Linux
+    runs-on: ubuntu-latest
+    outputs:
+      shasum: ${{ steps.linux_shasum.outputs.shasum }}
+    if: needs.CreateTag.outputs.tag != ''
+    steps:
+      - name: Install package
+        run: sudo apt-get update && sudo apt-get install -y rpm libarchive-tools
+
+      - name: Check out git repository
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
+        run: |
+          cd any-listen
+          pnpm install
+
+      - name: Build src code
+        run: |
+          cd any-listen
+          pnpm -F scripts build:desktop
+
+      - name: Build packages
+        run: |
+          cd any-listen
+          pnpm -F scripts publish:linux:deb:amd64
+          pnpm -F scripts publish:linux:deb:arm64
+          pnpm -F scripts publish:linux:deb:armv7l
+          pnpm -F scripts publish:linux:appImage
+          pnpm -F scripts publish:linux:rpm
+          pnpm -F scripts publish:linux:pacman
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate file SHA256
+        id: linux_shasum
+        run: |
+          cd build
+          hashes=$(sha256sum *.deb *.rpm *.pacman *.AppImage)
+          echo "$hashes"
+          echo "shasum<<EOF" >> $GITHUB_OUTPUT
+          echo "$hashes" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+  Release:
+    needs:
+      - CreateTag
+      - BuildWindows
+      - BuildWindows_7
+      - BuildMac
+      - BuildLinux
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out git repository
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Set release variables
+        id: set-release-vars
+        run: |
+          TAG="${{ needs.CreateTag.outputs.tag }}"
+          if [[ ! "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "TAG is not in x.x.x format. Using beta settings."
+            echo "log_file=./any-listen/packages/desktop/publish/changeLog.beta.md" >> $GITHUB_ENV
+            echo "prerelease=true" >> $GITHUB_ENV
+          else
+            echo "TAG is in x.x.x format. Using regular release settings."
+            echo "log_file=./any-listen/packages/desktop/publish/changeLog.md" >> $GITHUB_ENV
+            echo "prerelease=false" >> $GITHUB_ENV
+          fi
+
+      - name: Collect SHA256SUMS
+        run: |
+          {
+            echo "${{ needs.BuildWindows.outputs.shasum }}"
+            echo "${{ needs.BuildWindows_7.outputs.shasum }}"
+            echo "${{ needs.BuildMac.outputs.shasum }}"
+            echo "${{ needs.BuildLinux.outputs.shasum }}"
+          } > SHA256SUMS.txt
+          echo "" >> ${{ env.log_file }}
+          echo "### File SHA256SUMS" >> ${{ env.log_file }}
+          echo '```' >> ${{ env.log_file }}
+          cat SHA256SUMS.txt >> ${{ env.log_file }}
+          echo '```' >> ${{ env.log_file }}
+          echo "" >> ${{ env.log_file }}
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: ${{ env.log_file }}
+          prerelease: ${{ env.prerelease }}
+          draft: false
+          tag_name: v${{ needs.CreateTag.outputs.tag }}
+          files: |
+            SHA256SUMS.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
