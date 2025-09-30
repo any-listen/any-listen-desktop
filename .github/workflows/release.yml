@@ -31,21 +31,15 @@ jobs:
       run: |
         cd any-listen
         latest_commit=$(git log -1 --format=%H)
-        tag=$(git tag --contains $latest_commit)
+        tag=$(git tag --contains "$latest_commit" | grep '^desktop-' | head -n 1)
 
         if [ -z "$tag" ]; then
-          echo "No tag found for the latest commit in the submodule."
+          echo "No matching desktop tag found for the latest commit."
           echo "tag=" >> $GITHUB_OUTPUT
         else
-          echo "Tag found for the latest commit: $tag"
-          if [[ "$tag" == desktop-* ]]; then
-            echo "Tag found for the latest commit: $tag, commit: $latest_commit"
-            tag_formated=$(echo "$tag" | sed 's/^desktop-v\?//')
-            echo "tag=$tag_formated" >> $GITHUB_OUTPUT
-          else
-            echo "Tag does not start with 'desktop-v', skipping build."
-            echo "tag=" >> $GITHUB_OUTPUT
-          fi
+          echo "Tag found for the latest commit: $tag, commit: $latest_commit"
+          tag_formated=$(echo "$tag" | sed 's/^desktop-v\?//')
+          echo "tag=$tag_formated" >> $GITHUB_OUTPUT
         fi
   CreateTag:
     needs: CheckTag
