@@ -148,7 +148,14 @@ jobs:
           cd any-listen
           pnpm install
 
+      - name: Prepare win7 undici env
+        run: |
+          pnpm -F desktop add undici@5
+          Set-Content -Path .\any-listen\packages\shared\nodejs\request.ts -Value "export * from './request_node16'"
+
       - name: Build src code
+        env:
+          BUILD_WIN7: true
         run: |
           cd any-listen
           pnpm -F scripts build:desktop
