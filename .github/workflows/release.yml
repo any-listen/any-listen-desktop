@@ -100,10 +100,8 @@ jobs:
       - name: Build packages
         run: |
           cd any-listen
-          pnpm -F scripts publish:win:7z:x64
-          pnpm -F scripts publish:win:7z:arm64
-          pnpm -F scripts publish:win:setup:arm64
-          pnpm -F scripts publish:win:setup:x64
+          pnpm -F scripts publish:win:7z
+          pnpm -F scripts publish:win:setup
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -168,9 +166,8 @@ jobs:
       - name: Release win7 package
         run: |
           cd any-listen
-          pnpm -F scripts publish:win7:setup:x64
-          pnpm -F scripts publish:win7:7z:x64
-          pnpm -F scripts publish:win7:7z:x86
+          pnpm -F scripts publish:win7:setup
+          pnpm -F scripts publish:win7:7z
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -227,7 +224,6 @@ jobs:
         run: |
           cd any-listen
           pnpm -F scripts publish:mac:dmg
-          pnpm -F scripts publish:mac:dmg:arm64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -235,7 +231,7 @@ jobs:
         id: mac_shasum
         run: |
           cd any-listen/build
-          hashes=$(shasum -a 256 *.dmg)
+          hashes=$(shasum -a 256 *.dmg *.zip)
           echo "$hashes"
           echo "shasum<<EOF" >> $GITHUB_OUTPUT
           echo "$hashes" >> $GITHUB_OUTPUT
@@ -281,9 +277,7 @@ jobs:
       - name: Build packages
         run: |
           cd any-listen
-          pnpm -F scripts publish:linux:deb:amd64
-          pnpm -F scripts publish:linux:deb:arm64
-          pnpm -F scripts publish:linux:deb:armv7l
+          pnpm -F scripts publish:linux:deb
           pnpm -F scripts publish:linux:appImage
           pnpm -F scripts publish:linux:rpm
           pnpm -F scripts publish:linux:pacman
