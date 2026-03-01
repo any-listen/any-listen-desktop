@@ -223,7 +223,7 @@ jobs:
       - name: Build packages
         run: |
           cd any-listen
-          pnpm -F scripts publish:mac:dmg
+          pnpm -F scripts publish:mac
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -277,10 +277,7 @@ jobs:
       - name: Build packages
         run: |
           cd any-listen
-          pnpm -F scripts publish:linux:deb
-          pnpm -F scripts publish:linux:appImage
-          pnpm -F scripts publish:linux:rpm
-          pnpm -F scripts publish:linux:pacman
+          pnpm -F scripts publish:linux
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
