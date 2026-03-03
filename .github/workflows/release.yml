@@ -117,12 +117,12 @@ jobs:
           $hashes | ForEach-Object { echo "$_" >> $env:GITHUB_OUTPUT }
           echo "EOF" >> $env:GITHUB_OUTPUT
 
-  BuildWindows_7:
+  BuildWindowsLegacy:
     needs: CreateTag
-    name: Build Windows_7
+    name: Build Windows Legacy
     runs-on: windows-latest
     outputs:
-      shasum: ${{ steps.win7_shasum.outputs.shasum }}
+      shasum: ${{ steps.win_legacy_shasum.outputs.shasum }}
     if: needs.CreateTag.outputs.tag != ''
     steps:
       - name: Check out git repository
@@ -146,33 +146,33 @@ jobs:
           cd any-listen
           pnpm install
 
-      - name: Prepare win7 undici env
+      - name: Prepare win_legacy undici env
         run: |
           pnpm -F @shared/nodejs add undici@5
           Set-Content -Path .\any-listen\packages\shared\nodejs\request.ts -Value "export * from './request_node16'"
 
       - name: Build src code
         env:
-          BUILD_WIN7: true
+          BUILD_WIN_LEGACY: true
         run: |
           cd any-listen
           pnpm -F scripts build:desktop
 
-      - name: Prepare win7 electron env
+      - name: Prepare win_legacy electron env
         run: |
           pnpm -F desktop add electron@22
           pip.exe install setuptools
 
-      - name: Release win7 package
+      - name: Release win_legacy package
         run: |
           cd any-listen
-          pnpm -F scripts publish:win7:setup
-          pnpm -F scripts publish:win7:7z
+          pnpm -F scripts publish:win_legacy:setup
+          pnpm -F scripts publish:win_legacy:7z
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate file SHA256
-        id: win7_shasum
+        id: win_legacy_shasum
         run: |
           cd any-listen/build
           $hashes = Get-FileHash *.exe,*.7z -Algorithm SHA256 | ForEach-Object {
@@ -295,7 +295,7 @@ jobs:
     needs:
       - CreateTag
       - BuildWindows
-      - BuildWindows_7
+      - BuildWindowsLegacy
       - BuildMac
       - BuildLinux
     name: Release
@@ -324,7 +324,7 @@ jobs:
         run: |
           {
             echo "${{ needs.BuildWindows.outputs.shasum }}"
-            echo "${{ needs.BuildWindows_7.outputs.shasum }}"
+            echo "${{ needs.BuildWindowsLegacy.outputs.shasum }}"
             echo "${{ needs.BuildMac.outputs.shasum }}"
             echo "${{ needs.BuildLinux.outputs.shasum }}"
           } > SHA256SUMS.txt
