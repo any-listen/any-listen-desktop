@@ -100,8 +100,7 @@ jobs:
       - name: Build packages
         run: |
           cd any-listen
-          pnpm -F scripts publish:win:7z
-          pnpm -F scripts publish:win:setup
+          pnpm -F scripts publish:win
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -166,8 +165,7 @@ jobs:
       - name: Release win_legacy package
         run: |
           cd any-listen
-          pnpm -F scripts publish:win_legacy:setup
-          pnpm -F scripts publish:win_legacy:7z
+          pnpm -F scripts publish:win_legacy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
