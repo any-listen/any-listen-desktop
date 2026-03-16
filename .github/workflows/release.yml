@@ -166,6 +166,14 @@ jobs:
         run: |
           cd any-listen
           pnpm -F scripts publish:win_legacy
+
+      - name: Upload win_legacy package to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.CreateTag.outputs.tag }}
+          files: |
+            any-listen/build/*.exe
+            any-listen/build/*.7z
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
