@@ -170,6 +170,7 @@ jobs:
       - name: Upload win_legacy package to release
         uses: softprops/action-gh-release@v2
         with:
+          draft: true
           tag_name: v${{ needs.CreateTag.outputs.tag }}
           files: |
             any-listen/build/*.exe
