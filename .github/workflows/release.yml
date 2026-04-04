@@ -168,7 +168,7 @@ jobs:
           pnpm -F scripts publish:win_legacy
 
       - name: Upload win_legacy package to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.5.0
         with:
           draft: true
           tag_name: v${{ needs.CreateTag.outputs.tag }}
@@ -343,7 +343,8 @@ jobs:
           echo "" >> ${{ env.log_file }}
 
       - name: Release
-        uses: softprops/action-gh-release@v2
+        # https://github.com/softprops/action-gh-release/issues/772
+        uses: softprops/action-gh-release@v2.5.0
         with:
           body_path: ${{ env.log_file }}
           prerelease: ${{ env.prerelease }}
