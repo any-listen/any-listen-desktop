@@ -90,7 +90,7 @@ jobs:
       - name: Install Dependencies
         run: |
           cd any-listen
-          pnpm install
+          pnpm install --frozen-lockfile
 
       - name: Build src code
         run: |
@@ -143,7 +143,7 @@ jobs:
       - name: Install Dependencies
         run: |
           cd any-listen
-          pnpm install
+          pnpm install --frozen-lockfile
 
       - name: Prepare win_legacy undici env
         run: |
@@ -220,7 +220,7 @@ jobs:
       - name: Install Dependencies
         run: |
           cd any-listen
-          pnpm install
+          pnpm install --frozen-lockfile
 
       - name: Build src code
         run: |
@@ -274,7 +274,7 @@ jobs:
       - name: Install Dependencies
         run: |
           cd any-listen
-          pnpm install
+          pnpm install --frozen-lockfile
 
       - name: Build src code
         run: |
