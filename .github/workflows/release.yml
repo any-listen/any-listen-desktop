@@ -81,10 +81,14 @@ jobs:
         with:
           node-version: 24
 
-      - name: Install Dependencies and Build src code
+      - name: Install Dependencies
         run: |
           cd any-listen
           corepack enable && pnpm install --frozen-lockfile
+
+      - name: Build src code
+        run: |
+          cd any-listen
           pnpm -F scripts build:desktop
 
       - name: Build packages
@@ -124,17 +128,21 @@ jobs:
         with:
           node-version: 24
 
-      - name: Install Dependencies and Build src code
-        env:
-          BUILD_WIN_LEGACY: true
+      - name: Install Dependencies
         run: |
           cd any-listen
           corepack enable && pnpm install --frozen-lockfile
 
-          # Prepare win_legacy undici env
+      - name: Prepare win_legacy undici env
+        run: |
           pnpm -F @shared/nodejs add undici@5
           Set-Content -Path .\any-listen\packages\shared\nodejs\request.ts -Value "export * from './request_node16'"
 
+      - name: Build src code
+        env:
+          BUILD_WIN_LEGACY: true
+        run: |
+          cd any-listen
           pnpm -F scripts build:desktop
 
       - name: Prepare win_legacy electron env
@@ -191,10 +199,14 @@ jobs:
         with:
           node-version: 24
 
-      - name: Install Dependencies and Build src code
+      - name: Install Dependencies
         run: |
           cd any-listen
           corepack enable && pnpm install --frozen-lockfile
+
+      - name: Build src code
+        run: |
+          cd any-listen
           pnpm -F scripts build:desktop
 
       - name: Build packages
@@ -235,10 +247,14 @@ jobs:
         with:
           node-version: 24
 
-      - name: Install Dependencies and Build src code
+      - name: Install Dependencies
         run: |
           cd any-listen
           corepack enable && pnpm install --frozen-lockfile
+
+      - name: Build src code
+        run: |
+          cd any-listen
           pnpm -F scripts build:desktop
 
       - name: Build packages
