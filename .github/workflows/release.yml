@@ -136,6 +136,7 @@ jobs:
       - name: Prepare win_legacy undici env
         run: |
           pnpm -F @shared/nodejs add undici@5
+          pnpm -F @shared/common add lru-cache@10
           Set-Content -Path .\any-listen\packages\shared\nodejs\request.ts -Value "export * from './request_node16'"
 
       - name: Build src code
