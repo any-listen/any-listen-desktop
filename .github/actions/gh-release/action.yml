@@ -77,7 +77,7 @@ runs:
           exit 0
         fi
 
-        upload() {
+        upload_with_retry() {
           local file="$1"
           local max_retry=3
           local attempt=1
