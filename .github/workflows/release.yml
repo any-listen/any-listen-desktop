@@ -49,6 +49,8 @@ jobs:
       tag: ${{ steps.create_tag.outputs.tag }}
     if: needs.CheckTag.outputs.tag != ''
     steps:
+      - name: Check out git repository
+        uses: actions/checkout@v6
       - name: Create git tag
         uses: ./.github/actions/git-tag
         with:
