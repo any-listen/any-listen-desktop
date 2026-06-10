@@ -1,0 +1,26 @@
+name: Git Tag
+description: Create git tag only if not exists
+
+inputs:
+  tag:
+    required: true
+  sha:
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Create tag if not exists
+      shell: bash
+      run: |
+        TAG="${{ inputs.tag }}"
+        SHA="${{ inputs.sha }}"
+
+        if git ls-remote --tags origin "$TAG" | grep -q "$TAG"; then
+          echo "Tag exists: $TAG"
+          exit 0
+        fi
+
+        echo "Creating tag: $TAG"
+        git tag "$TAG" "$SHA"
+        git push origin "$TAG"

@@ -24,7 +24,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v6
       with:
-        submodules: 'true'
+        submodules: true
         fetch-tags: true
 
     - name: Check if submodule latest commit has a tag
@@ -50,13 +50,10 @@ jobs:
     if: needs.CheckTag.outputs.tag != ''
     steps:
       - name: Create git tag
-        uses: pkgdeps/git-tag-action@v2
+        uses: ./.github/actions/git-tag
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          github_repo: ${{ github.repository }}
-          version: ${{ needs.CheckTag.outputs.tag }}
-          git_commit_sha: ${{ github.sha }}
-          git_tag_prefix: "v"
+          tag: v${{ needs.CheckTag.outputs.tag }}
+          sha: ${{ github.sha }}
 
       - name: Output tag
         id: create_tag
@@ -74,7 +71,7 @@ jobs:
       - name: Check out git repository
         uses: actions/checkout@v6
         with:
-          submodules: 'true'
+          submodules: true
 
       - name: Install Node.js
         uses: actions/setup-node@v6
@@ -121,7 +118,7 @@ jobs:
       - name: Check out git repository
         uses: actions/checkout@v6
         with:
-          submodules: 'true'
+          submodules: true
 
       - name: Install Node.js
         uses: actions/setup-node@v6
@@ -156,16 +153,14 @@ jobs:
           cd any-listen
           pnpm -F scripts publish:win_legacy
 
-      - name: Upload win_legacy package to release
-        uses: softprops/action-gh-release@v2.5.0
+      - name: Upload win_legacy package
+        uses: ./.github/actions/gh-release
         with:
           draft: true
           tag_name: v${{ needs.CreateTag.outputs.tag }}
           files: |
             any-listen/build/*.exe
             any-listen/build/*.7z
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate file SHA256
         id: win_legacy_shasum
@@ -193,7 +188,7 @@ jobs:
       - name: Check out git repository
         uses: actions/checkout@v6
         with:
-          submodules: 'true'
+          submodules: true
 
       - name: Install Node.js
         uses: actions/setup-node@v6
@@ -241,7 +236,7 @@ jobs:
       - name: Check out git repository
         uses: actions/checkout@v6
         with:
-          submodules: 'true'
+          submodules: true
 
       - name: Install Node.js
         uses: actions/setup-node@v6
@@ -288,7 +283,7 @@ jobs:
       - name: Check out git repository
         uses: actions/checkout@v6
         with:
-          submodules: 'true'
+          submodules: true
 
       - name: Set release variables
         id: set-release-vars
@@ -344,14 +339,11 @@ jobs:
           } >> "${{ env.log_file }}"
 
       - name: Release
-        # https://github.com/softprops/action-gh-release/issues/772
-        uses: softprops/action-gh-release@v2.5.0
+        uses: ./.github/actions/gh-release
         with:
-          body_path: ${{ env.log_file }}
+          notes_file: ${{ env.log_file }}
           prerelease: ${{ env.prerelease }}
           draft: false
           tag_name: v${{ needs.CreateTag.outputs.tag }}
           files: |
             SHA256SUMS.txt
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,131 @@
+name: GitHub Release
+description: Create GitHub release and upload assets
+
+inputs:
+  tag_name:
+    required: true
+
+  title:
+    required: false
+    default: ""
+
+  notes:
+    required: false
+    default: ""
+
+  notes_file:
+    required: false
+    default: ""
+
+  files:
+    required: false
+    default: ""
+
+  draft:
+    required: false
+    default: "true"
+
+  prerelease:
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+
+    - name: Ensure release exists
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        TAG="${{ inputs.tag_name }}"
+
+        if gh release view "$TAG" >/dev/null 2>&1; then
+          echo "RELEASE_EXISTS=true"
+          exit 0
+        fi
+
+        echo "RELEASE_EXISTS=false"
+
+        TITLE="${{ inputs.title }}"
+        [ -z "$TITLE" ] && TITLE="$TAG"
+
+        ARGS=(--title "$TITLE" --draft=true)
+
+        if [ "${{ inputs.prerelease }}" = "true" ]; then
+          ARGS+=(--prerelease)
+        fi
+
+        if [ -n "${{ inputs.notes_file }}" ]; then
+          ARGS+=(--notes-file "${{ inputs.notes_file }}")
+        elif [ -n "${{ inputs.notes }}" ]; then
+          ARGS+=(--notes "${{ inputs.notes }}")
+        fi
+
+        gh release create "$TAG" "${ARGS[@]}"
+
+    - name: Upload assets
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        TAG="${{ inputs.tag_name }}"
+        FILES_INPUT="${{ inputs.files }}"
+
+        if [ -z "$FILES_INPUT" ]; then
+          echo "No files"
+          exit 0
+        fi
+
+        upload() {
+          local file="$1"
+          local max_retry=3
+          local attempt=1
+
+          while [ $attempt -le $max_retry ]; do
+            echo "Uploading [$attempt/$max_retry]: $file"
+
+            if gh release upload "$TAG" "$file" --clobber; then
+              echo "Upload success: $file"
+              return 0
+            fi
+
+            echo "Upload failed: $file (attempt $attempt)"
+            attempt=$((attempt + 1))
+            sleep 2
+          done
+
+          echo "ERROR: Failed after $max_retry attempts: $file"
+          return 1
+        }
+
+        while IFS= read -r file; do
+          [ -z "$file" ] && continue
+
+          if ! upload_with_retry "$file"; then
+            echo "Fatal: upload failed for $file, stopping workflow"
+            exit 1
+          fi
+
+        done <<< "$FILES_INPUT"
+
+    - name: Publish release
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        TAG="${{ inputs.tag_name }}"
+
+        if [ "${{ inputs.draft }}" = "true" ]; then
+          echo "Skipping publish, release is a draft"
+          exit 0
+        fi
+
+        IS_DRAFT=$(gh release view "$TAG" --json isDraft -q '.isDraft')
+
+        if [ "$IS_DRAFT" = "false" ]; then
+          echo "Already published"
+          exit 0
+        fi
+
+        gh release edit "$TAG" --draft=false
