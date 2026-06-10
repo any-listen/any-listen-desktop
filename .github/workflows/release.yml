@@ -57,6 +57,12 @@ jobs:
           tag: v${{ needs.CheckTag.outputs.tag }}
           sha: ${{ github.sha }}
 
+      - name: Create GitHub release
+        uses: ./.github/actions/gh-release
+        with:
+          draft: true
+          tag_name: v${{ needs.CheckTag.outputs.tag }}
+
       - name: Output tag
         id: create_tag
         run: |
