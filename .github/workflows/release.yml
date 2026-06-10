@@ -329,7 +329,7 @@ jobs:
             echo ""
             echo "---"
             echo ""
-            echo "### 快捷链接 (Shortcut links)"
+            echo "### Shortcut links (快捷链接)"
             echo ""
 
             links=(
