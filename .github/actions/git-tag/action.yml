@@ -10,6 +10,9 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Check out git repository
+      uses: actions/checkout@v6
+
     - name: Create tag if not exists
       shell: bash
       run: |
