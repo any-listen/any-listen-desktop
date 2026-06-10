@@ -312,12 +312,36 @@ jobs:
             echo "${{ needs.BuildMac.outputs.shasum }}"
             echo "${{ needs.BuildLinux.outputs.shasum }}"
           } > SHA256SUMS.txt
-          echo "" >> ${{ env.log_file }}
-          echo "### File SHA256SUMS" >> ${{ env.log_file }}
-          echo '```' >> ${{ env.log_file }}
-          cat SHA256SUMS.txt >> ${{ env.log_file }}
-          echo '```' >> ${{ env.log_file }}
-          echo "" >> ${{ env.log_file }}
+          # echo "" >> ${{ env.log_file }}
+          # echo "### File SHA256SUMS" >> ${{ env.log_file }}
+          # echo '```' >> ${{ env.log_file }}
+          # cat SHA256SUMS.txt >> ${{ env.log_file }}
+          # echo '```' >> ${{ env.log_file }}
+          # echo "" >> ${{ env.log_file }}
+
+          tag="${{ needs.CreateTag.outputs.tag }}"
+          base_url="https://github.com/any-listen/any-listen-desktop/releases/download/v${tag}"
+
+          {
+            echo ""
+            echo "---"
+            echo ""
+            echo "### 快捷链接 (Shortcut links)"
+            echo ""
+
+            links=(
+              "Windows x64|any-listen-${tag}-x64-Setup.exe"
+              "MacOS arm64|any-listen-${tag}-arm64.dmg"
+              "Linux amd64 deb|any-listen_${tag}_amd64.deb"
+            )
+
+            for item in "${links[@]}"; do
+              IFS='|' read -r name file <<< "$item"
+              echo "- ${name}: [${file}](${base_url}/${file})"
+            done
+
+            echo
+          } >> "${{ env.log_file }}"
 
       - name: Release
         # https://github.com/softprops/action-gh-release/issues/772
