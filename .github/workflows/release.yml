@@ -13,7 +13,7 @@ permissions:
 
 env:
   IS_CI: true
-  # SKIP_LIB_COPY: true
+  SKIP_LIB_COPY: true
   DESKTOP_ONLY: true
 
 jobs:
