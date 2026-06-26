@@ -146,7 +146,7 @@ jobs:
           pnpm -F @shared/common add lru-cache@10
           pnpm -F desktop add electron@22
           pnpm install --no-frozen-lockfile
-          Set-Content -Path .\any-listen\packages\shared\nodejs\request.ts -Value "export * from './request_node16'"
+          Set-Content -Path .\packages\shared\nodejs\request.ts -Value "export * from './request_node16'"
 
       - name: Build src code
         env:
