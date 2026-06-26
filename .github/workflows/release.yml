@@ -141,8 +141,10 @@ jobs:
 
       - name: Prepare win_legacy undici env
         run: |
+          cd any-listen
           pnpm -F @shared/nodejs add undici@5
           pnpm -F @shared/common add lru-cache@10
+          pnpm -F desktop add electron@22
           pnpm install --no-frozen-lockfile
           Set-Content -Path .\any-listen\packages\shared\nodejs\request.ts -Value "export * from './request_node16'"
 
@@ -155,7 +157,6 @@ jobs:
 
       - name: Prepare win_legacy electron env
         run: |
-          pnpm -F desktop add electron@22
           pip.exe install setuptools
 
       - name: Release win_legacy package
