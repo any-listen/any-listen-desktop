@@ -90,7 +90,7 @@ jobs:
       - name: Install Dependencies
         run: |
           cd any-listen
-          npm install -g node-gyp@latest
+          pnpm add -g node-gyp@latest
           corepack enable && pnpm install --frozen-lockfile
 
       - name: Build src code
@@ -121,6 +121,8 @@ jobs:
     needs: CreateTag
     name: Build Windows Legacy
     runs-on: windows-latest
+    env:
+      BUILD_WIN_LEGACY: true
     outputs:
       shasum: ${{ steps.win_legacy_shasum.outputs.shasum }}
     if: needs.CreateTag.outputs.tag != ''
@@ -150,8 +152,6 @@ jobs:
           Set-Content -Path .\packages\shared\nodejs\request.ts -Value "export * from './request_node16'"
 
       - name: Build src code
-        env:
-          BUILD_WIN_LEGACY: true
         run: |
           cd any-listen
           pnpm -F scripts build:desktop
