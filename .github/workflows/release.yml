@@ -72,7 +72,7 @@ jobs:
   BuildWindows:
     needs: CreateTag
     name: Build Windows
-    runs-on: windows-latest
+    runs-on: windows-2022
     outputs:
       shasum: ${{ steps.win_shasum.outputs.shasum }}
     if: needs.CreateTag.outputs.tag != ''
@@ -119,7 +119,7 @@ jobs:
   BuildWindowsLegacy:
     needs: CreateTag
     name: Build Windows Legacy
-    runs-on: windows-latest
+    runs-on: windows-2022
     env:
       BUILD_WIN_LEGACY: true
     outputs:
