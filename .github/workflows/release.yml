@@ -90,6 +90,7 @@ jobs:
       - name: Install Dependencies
         run: |
           cd any-listen
+          npm install -g node-gyp@latest
           corepack enable && pnpm install --frozen-lockfile
 
       - name: Build src code
