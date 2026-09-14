@@ -146,6 +146,7 @@ jobs:
           cd any-listen
           pnpm -F @shared/nodejs add undici@5
           pnpm -F @shared/common add lru-cache@10
+          pnpm -F @shared/app add better-sqlite3@12
           pnpm -F desktop add electron@22 better-sqlite3@12
           pnpm install --no-frozen-lockfile
           Set-Content -Path .\packages\shared\nodejs\request.ts -Value "export * from './request_node16'"
