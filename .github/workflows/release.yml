@@ -116,6 +116,53 @@ jobs:
           $hashes | ForEach-Object { echo "$_" >> $env:GITHUB_OUTPUT }
           echo "EOF" >> $env:GITHUB_OUTPUT
 
+  BuildWindowsGreen:
+    needs: CreateTag
+    name: Build Windows Green
+    runs-on: windows-2022
+    outputs:
+      shasum: ${{ steps.win_green_shasum.outputs.shasum }}
+    if: needs.CreateTag.outputs.tag != ''
+    steps:
+      - name: Check out git repository
+        uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Install Dependencies
+        run: |
+          cd any-listen
+          corepack enable && pnpm install --frozen-lockfile
+
+      - name: Build src code
+        run: |
+          cd any-listen
+          pnpm -F scripts build:desktop
+
+      - name: Build packages
+        run: |
+          cd any-listen
+          pnpm -F scripts publish:win_green
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate file SHA256
+        id: win_green_shasum
+        run: |
+          cd any-listen/build
+          $hashes = Get-FileHash *.exe,*.7z -Algorithm SHA256 | ForEach-Object {
+            "$($_.Hash)  $($_.Path | Split-Path -Leaf)"
+          }
+          $hashes | Out-String
+          echo "shasum<<EOF" >> $env:GITHUB_OUTPUT
+          $hashes | ForEach-Object { echo "$_" >> $env:GITHUB_OUTPUT }
+          echo "EOF" >> $env:GITHUB_OUTPUT
+
   BuildWindowsLegacy:
     needs: CreateTag
     name: Build Windows Legacy
@@ -286,6 +333,7 @@ jobs:
     needs:
       - CreateTag
       - BuildWindows
+      - BuildWindowsGreen
       - BuildWindowsLegacy
       - BuildMac
       - BuildLinux
@@ -315,6 +363,7 @@ jobs:
         run: |
           {
             echo "${{ needs.BuildWindows.outputs.shasum }}"
+            echo "${{ needs.BuildWindowsGreen.outputs.shasum }}"
             echo "${{ needs.BuildWindowsLegacy.outputs.shasum }}"
             echo "${{ needs.BuildMac.outputs.shasum }}"
             echo "${{ needs.BuildLinux.outputs.shasum }}"
