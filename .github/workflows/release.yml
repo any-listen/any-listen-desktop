@@ -197,6 +197,10 @@ jobs:
           pnpm -F desktop add electron@22 better-sqlite3@12
           pnpm install --no-frozen-lockfile
           Set-Content -Path .\packages\shared\nodejs\request.ts -Value "export * from './request_node16'"
+          foreach ($file in @('.\packages\shared\nodejs\music-metadata.ts', '.\packages\shared\nodejs\music.ts')) {
+            (Get-Content -Path $file -Raw) -replace 'music-metadata/node', 'music-metadata' | Set-Content -Path $file
+          }
+          
 
       - name: Build src code
         run: |
